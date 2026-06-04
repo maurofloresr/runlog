@@ -1,0 +1,192 @@
+{% extends "layout.html" %}
+{% block title %}Home · RunLog{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- Greeting + period switch -->
+<div class="flex items-center justify-between mb-1 fade-up">
+  <h1 class="text-xl font-medium">Welcome back, {{ session.username | upper }} 👋</h1>
+  <div class="flex gap-1">
+    <a href="/?period=week"
+       class="text-xs px-3 py-1.5 rounded-full border transition-all
+              {% if period == 'week' %}bg-teal/10 border-teal/40 text-teal{% else %}border-border text-muted hover:text-white{% endif %}">
+      Week
+    </a>
+    <a href="/?period=month"
+       class="text-xs px-3 py-1.5 rounded-full border transition-all
+              {% if period == 'month' %}bg-teal/10 border-teal/40 text-teal{% else %}border-border text-muted hover:text-white{% endif %}">
+      Month
+    </a>
+  </div>
+</div>
+<p class="text-muted text-sm mb-5 fade-up">{{ today }}</p>
+
+<!-- Weather alert -->
+{% if weather %}
+<div class="bg-card border border-border rounded-xl2 p-3 mb-5 fade-up">
+  <p class="text-xs text-muted">{{ weather.location }}</p>
+  <p class="text-sm font-medium">{{ weather.temp }}°C · {{ weather.description }}</p>
+ {% for alert in weather.alerts %}
+<p class="text-xs text-warn mt-1">{{ alert }}</p>
+{% endfor %}
+</div>
+{% endif %}
+
+<!-- Quick metrics -->
+<div class="grid grid-cols-2 gap-3 mb-5 fade-up fade-up-1">
+
+  <div class="bg-card border border-border rounded-xl2 p-4">
+    <p class="text-sm text-muted mb-1">Total km</p>
+    {% if total_km is not none %}
+    <p class="text-2xl font-medium">{{ total_km | round(1) }} <span class="text-sm text-muted font-normal">km</span></p>
+    {% else %}
+    <p class="text-xs text-muted">No sessions yet</p>
+    {% endif %}
+  </div>
+
+  <div class="bg-card border {% if acwr and acwr >= 1.5 %}border-bad/40{% elif acwr and acwr >= 1.3 %}border-warn/40{% else %}border-border{% endif %} rounded-xl2 p-4">
+    <div class="flex items-center justify-between mb-1">
+      <p class="text-xs text-muted">ACWR</p>
+      <div class="relative group">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-muted cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div class="hidden group-hover:block absolute z-10 top-full mt-2 right-0 w-56 bg-surface border border-border rounded-xl2 p-3 text-xs text-muted shadow-lg">
+          Compares this week's load vs your 4-week average. Sweet spot: 0.8–1.3.
+          Uses RPE × duration when available — more accurate than km alone.
+        </div>
+      </div>
+    </div>
+    {% if acwr is not none %}
+    <p class="text-2xl font-medium {% if acwr >= 1.5 %}text-bad{% elif acwr >= 1.3 %}text-warn{% else %}text-ok{% endif %}">
+      {{ acwr | round(2) }}
+    </p>
+    <p class="text-xs text-muted">/ 1.5 max</p>
+    {% else %}
+    <p class="text-xs text-muted">Insufficient data</p>
+    {% endif %}
+  </div>
+
+  <div class="bg-card border border-border rounded-xl2 p-4">
+    <p class="text-xs text-muted mb-1">Zone 2 avg.</p>
+    {% if zone_2_avg is not none %}
+    <p class="text-2xl font-medium {% if zone_2_avg >= 70 %}text-ok{% elif zone_2_avg >= 50 %}text-warn{% else %}text-bad{% endif %}">
+      {{ zone_2_avg }}%
+    </p>
+    {% else %}
+    <p class="text-xs text-muted">No zone data</p>
+    {% endif %}
+  </div>
+
+  <div class="bg-card border border-border rounded-xl2 p-4">
+    <p class="text-xs text-muted mb-1">Cadence avg.</p>
+    {% if cadence is not none %}
+    <p class="text-2xl font-medium {% if cadence >= 160 %}text-ok{% elif cadence >= 150 %}text-warn{% else %}text-bad{% endif %}">
+      {{ cadence | int }} <span class="text-sm text-muted font-normal">spm</span>
+    </p>
+    {% else %}
+    <p class="text-xs text-muted">No cadence data</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Distance per session chart -->
+{% if chart_distances %}
+<div class="bg-card border border-border rounded-xl2 p-4 mb-5 fade-up fade-up-2">
+  <p class="text-xs text-muted uppercase tracking-wider mb-3">Distance per session</p>
+  <canvas id="chartDistance" height="120"></canvas>
+</div>
+{% endif %}
+
+<!-- Progress towards goal -->
+<div class="bg-card border border-border rounded-xl2 p-4 mb-5 fade-up fade-up-2">
+  <div class="flex justify-between items-center mb-3">
+    <p class="text-xs text-muted uppercase tracking-wider">Progress towards goal</p>
+    <span class="text-xs text-teal font-mono">{{ goal_km }}km</span>
+  </div>
+  <div class="relative h-2 bg-bg rounded-full overflow-hidden mb-2">
+    <div class="absolute h-full bg-teal rounded-full transition-all duration-700"
+         style="width: {{ goal_progress_pct }}%"></div>
+  </div>
+  <div class="flex justify-between text-xs text-muted">
+    {% for milestone in milestones %}
+    <span class="{% if milestone.done %}text-teal{% endif %}">
+      {{ milestone.km }}k {% if milestone.done %}✓{% endif %}
+    </span>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Last session -->
+{% if last_session %}
+<div class="bg-card border border-border rounded-xl2 p-4 fade-up fade-up-3">
+  <div class="flex items-center justify-between mb-3">
+    <p class="text-xs text-muted uppercase tracking-wider">Last session</p>
+    <span class="text-xs text-muted">{{ last_session.session_date }}</span>
+  </div>
+  <div class="grid grid-cols-3 gap-2 mb-4">
+    <div class="text-center">
+      <p class="text-lg font-medium">{{ last_session.distance_km }}</p>
+      <p class="text-xs text-muted">km</p>
+    </div>
+    <div class="text-center">
+      <p class="text-lg font-medium">{{ last_session.duration_fmt }}</p>
+      <p class="text-xs text-muted">time</p>
+    </div>
+    <div class="text-center">
+      <p class="text-lg font-medium">{{ last_session.avg_hr }}</p>
+      <p class="text-xs text-muted">avg HR</p>
+    </div>
+  </div>
+  {% if last_session.ai_feedback %}
+  <div class="border-t border-border pt-3">
+    <p class="text-xs text-teal mb-2">✦ Feedback</p>
+    <p class="text-sm text-muted leading-relaxed">{{ last_session.ai_feedback }}</p>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+<div class="bg-card border border-dashed border-border rounded-xl2 p-8 text-center fade-up fade-up-3">
+  <p class="text-2xl mb-2">🏃</p>
+  <p class="text-sx text-muted">No sessions yet. <a href="/upload" class="text-teal hover:underline">Upload your first one</a></p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const labels = {{ chart_labels | tojson }};
+  const data   = {{ chart_distances | tojson }};
+
+  const ctx = document.getElementById('chartDistance');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: data.map(v => v >= 10 ? '#2dd4bf' : '#1c2333'),
+          borderColor:     data.map(v => v >= 10 ? '#14b8a6' : '#30363d'),
+          borderWidth: 1,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#1c2333' }, ticks: { color: '#8b949e', font: { size: 11 } } },
+          y: { grid: { color: '#1c2333' }, ticks: { color: '#8b949e', font: { size: 11 } }, beginAtZero: true }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

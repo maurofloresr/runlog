@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0d1117" />
+  <title>{% block title %}RunLog{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: DM Sans + DM Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['DM Sans', 'sans-serif'],
+            mono: ['DM Mono', 'monospace'],
+          },
+          colors: {
+            bg:      '#0d1117',
+            surface: '#161b22',
+            card:    '#1c2333',
+            border:  '#30363d',
+            teal:  { DEFAULT: '#2dd4bf', dark: '#14b8a6', light: '#99f6e4' },
+            ok:   '#22c55e',
+            warn: '#f59e0b',
+            bad:  '#ef4444',
+            muted:'#8b949e',
+          },
+          borderRadius: {
+            xl2: '1rem',
+            xl3: '1.25rem',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp .35s ease both; }
+    .fade-up-1 { animation-delay: .05s; }
+    .fade-up-2 { animation-delay: .10s; }
+    .fade-up-3 { animation-delay: .15s; }
+    .fade-up-4 { animation-delay: .20s; }
+
+    .flash-success { background:#052e16; border:1px solid #166534; color:#86efac; }
+    .flash-error   { background:#450a0a; border:1px solid #991b1b; color:#fca5a5; }
+    .flash-info    { background:#0c1a2e; border:1px solid #1e3a5f; color:#93c5fd; }
+
+    .badge-green  { background:#052e16; color:#4ade80; }
+    .badge-amber  { background:#1c0f00; color:#fbbf24; }
+    .badge-blue   { background:#0c1a2e; color:#60a5fa; }
+    .badge-red    { background:#450a0a; color:#f87171; }
+    .badge-gray   { background:#1c2333; color:#8b949e; }
+
+    .nav-link {
+      padding: .35rem .75rem;
+      border-radius: .5rem;
+      font-size: .875rem;
+      color: #8b949e;
+      transition: all .15s;
+    }
+    .nav-link:hover { color: white; background: #1c2333; }
+    .nav-active { color: #2dd4bf !important; background: #0d2e2a !important; }
+
+    .bottom-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: .5rem 0;
+      font-size: .6rem;
+      color: #8b949e;
+      transition: color .15s;
+    }
+    .bottom-tab:hover { color: white; }
+    .bottom-active { color: #2dd4bf !important; }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body class="bg-bg text-white min-h-full flex flex-col">
+
+  <!-- NAVBAR -->
+  {% if session.user_id %}
+  <header class="bg-surface border-b border-border sticky top-0 z-50">
+    <div class="max-w-lg mx-auto px-4 flex items-center justify-between h-14">
+
+      <a href="/" class="flex items-center gap-2">
+        <span class="text-teal font-mono font-medium text-lg tracking-tight">run<span class="text-white">log</span></span>
+      </a>
+
+      <nav class="hidden sm:flex items-center gap-1">
+        <a href="/"        class="nav-link {% if request.path == '/' %}nav-active{% endif %}">home</a>
+        <a href="/upload"  class="nav-link {% if request.path == '/upload' %}nav-active{% endif %}">upload</a>
+        <a href="/history" class="nav-link {% if request.path == '/history' %}nav-active{% endif %}">progress</a>
+        <a href="/profile" class="nav-link {% if request.path == '/profile' %}nav-active{% endif %}">profile</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="/logout" class="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-muted hover:text-white hover:border-teal transition-all text-xs">
+          ↩
+        </a>
+      </div>
+
+    </div>
+  </header>
+  {% endif %}
+
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="max-w-lg mx-auto w-full px-4 pt-4 space-y-2">
+      {% for category, message in messages %}
+      <div class="flash-{{ category }} rounded-xl2 px-4 py-3 text-sm fade-up">
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- CONTENT -->
+  <main class="flex-1 max-w-lg mx-auto w-full px-4 py-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- BOTTOM NAV (mobile) -->
+  {% if session.user_id %}
+  <nav class="sm:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-50">
+    <div class="max-w-lg mx-auto flex">
+      <a href="/"        class="bottom-tab {% if request.path == '/' %}bottom-active{% endif %}">
+        <span class="text-xl">⌂</span><span>home</span>
+      </a>
+      <a href="/upload"  class="bottom-tab {% if request.path == '/upload' %}bottom-active{% endif %}">
+        <span class="text-xl">+</span><span>upload</span>
+      </a>
+      <a href="/history" class="bottom-tab {% if request.path == '/history' %}bottom-active{% endif %}">
+        <span class="text-xl">↗</span><span>progress</span>
+      </a>
+      <a href="/profile" class="bottom-tab {% if request.path == '/profile' %}bottom-active{% endif %}">
+        <span class="text-xl">◎</span><span>profile</span>
+      </a>
+    </div>
+  </nav>
+  <div class="sm:hidden h-16"></div>
+  {% endif %}
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,277 @@
+{% extends "layout.html" %}
+{% block title %}New session · RunLog{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 fade-up">
+  <h1 class="text-xl font-medium">New session</h1>
+  <p class="text-muted text-sm mt-0.5">Upload your Samsung Health screenshots</p>
+</div>
+
+<form action="/upload" method="post" enctype="multipart/form-data" id="upload-form">
+
+  <!-- CSRF protection token -->
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <!-- Photo drop zone -->
+  <div class="bg-card border-2 border-dashed border-border rounded-xl2 p-6 text-center mb-4 fade-up fade-up-1"
+       id="drop-zone">
+    <div class="text-3xl mb-2">📷</div>
+    <p class="text-sm font-medium mb-1">Drag or select your screenshots</p>
+    <p class="text-xs text-muted mb-4">You can upload multiple at once — summary, HR chart, zones</p>
+    <input type="file" id="photos" name="photos" multiple accept="image/*" class="hidden" />
+    <button type="button" onclick="document.getElementById('photos').click()"
+            class="btn-secondary text-sm px-4 py-2">
+      Choose photos
+    </button>
+    <div id="preview" class="flex flex-wrap gap-2 justify-center mt-4"></div>
+  </div>
+
+  <!-- AI status -->
+  <div id="ai-status" class="hidden bg-[#0d2e2a] border border-teal/30 rounded-xl2 p-3 mb-4 text-sm text-teal fade-up">
+    <span id="ai-status-text">✦ Analyzing images...</span>
+  </div>
+
+  <!-- Training data fields -->
+  <div class="bg-card border border-border rounded-xl2 p-4 mb-4 fade-up fade-up-2">
+    <div class="flex items-center justify-between mb-4">
+      <p class="text-xs text-muted uppercase tracking-wider">Training data</p>
+      <span class="text-xs badge-blue px-2 py-0.5 rounded-full">AI extracts automatically</span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs text-muted mb-1.5">Date</label>
+        <input type="date" name="session_date" id="session_date"
+               class="input-field" value="{{ today_date }}" required />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1.5">Distance (km)</label>
+        <input type="number" name="distance_km" id="distance_km" step="0.01" min="0"
+               class="input-field" placeholder="—" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1.5">Duration (min)</label>
+        <input type="number" name="duration_min" id="duration_min" step="1" min="0"
+               class="input-field" placeholder="—" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1.5">Avg HR (bpm)</label>
+        <input type="number" name="avg_hr" id="avg_hr" min="50" max="220"
+               class="input-field" placeholder="—" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1.5">Max HR (bpm)</label>
+        <input type="number" name="max_hr" id="max_hr" min="50" max="220"
+               class="input-field" placeholder="—" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1.5">Cadence (spm)</label>
+        <input type="number" name="cadence" id="cadence" min="100" max="220"
+               class="input-field" placeholder="—" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1.5">Calories</label>
+        <input type="number" name="calories" id="calories" min="0"
+               class="input-field" placeholder="—" />
+      </div>
+      <div>
+        <label class="block text-xs text-muted mb-1.5">Zone 2 time (min)</label>
+        <input type="number" name="zone2_minutes" id="zone2_minutes" min="0"
+               class="input-field" placeholder="—" />
+      </div>
+      <div class="col-span-2">
+        <label class="block text-xs text-muted mb-1.5">VO2max</label>
+        <input type="number" name="vo2max" id="vo2max" step="0.1" min="20" max="80"
+               class="input-field" placeholder="— (if Samsung Health shows it)" />
+      </div>
+    </div>
+  </div>
+
+  <!-- User perception -->
+  <div class="bg-card border border-border rounded-xl2 p-4 mb-4 fade-up fade-up-2">
+    <p class="text-xs text-muted uppercase tracking-wider mb-4">How did it feel? (30 sec)</p>
+
+    <div class="mb-5">
+      <div class="flex justify-between items-center mb-2">
+        <label class="text-sm">Effort (RPE)</label>
+        <span id="rpe-label" class="text-sm font-mono text-teal">5 — moderate</span>
+      </div>
+      <input type="range" name="rpe" id="rpe" min="1" max="10" value="5"
+             class="w-full accent-teal" />
+      <div class="flex justify-between text-xs text-muted mt-1">
+        <span>1 very easy</span>
+        <span>10 maximum</span>
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <label class="block text-sm mb-2">Any discomfort?</label>
+      <div class="flex flex-wrap gap-2" id="pain-buttons">
+        <button type="button" class="pain-btn active" data-value="">None ✓</button>
+        <button type="button" class="pain-btn" data-value="right_knee">Right knee</button>
+        <button type="button" class="pain-btn" data-value="left_knee">Left knee</button>
+        <button type="button" class="pain-btn" data-value="right_ankle">Right ankle</button>
+        <button type="button" class="pain-btn" data-value="left_ankle">Left ankle</button>
+        <button type="button" class="pain-btn" data-value="hip">Hip</button>
+        <button type="button" class="pain-btn" data-value="lower_back">Lower back</button>
+        <button type="button" class="pain-btn" data-value="calf">Calf</button>
+      </div>
+      <input type="hidden" name="pain_zones" id="pain-zones-input" value="" />
+
+      <div id="pain-intensity-wrap" class="hidden mt-3">
+        <label class="text-xs text-muted">Pain intensity</label>
+        <div class="flex gap-2 mt-1">
+          {% for i in range(1, 6) %}
+          <button type="button" class="pain-int-btn w-9 h-9 rounded-full border border-border text-sm text-muted"
+                  data-int="{{ i }}">{{ i }}</button>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="pain_intensity" id="pain-intensity-input" value="" />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm mb-2">Surface</label>
+      <div class="flex gap-2">
+        <button type="button" class="surf-btn active" data-value="road">Road</button>
+        <button type="button" class="surf-btn" data-value="track">Track</button>
+        <button type="button" class="surf-btn" data-value="trail">Trail</button>
+        <button type="button" class="surf-btn" data-value="mixed">Mixed</button>
+      </div>
+      <input type="hidden" name="surface" id="surface-input" value="road" />
+    </div>
+  </div>
+
+  <!-- Optional notes -->
+  <div class="bg-card border border-border rounded-xl2 p-4 mb-6 fade-up fade-up-3">
+    <label class="block text-xs text-muted uppercase tracking-wider mb-2">Notes (optional)</label>
+    <textarea name="notes" rows="2"
+              class="input-field resize-none"
+              placeholder="E.g. Went out early, it was cold. Legs felt heavy at the start."></textarea>
+  </div>
+
+  <button type="submit" id="submit-btn" class="btn-primary w-full fade-up fade-up-3">
+    Save session →
+  </button>
+
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* --- RPE label --- */
+  const rpeLabels = {1:'very easy',2:'easy',3:'easy',4:'moderate',5:'moderate',6:'somewhat hard',7:'hard',8:'hard',9:'very hard',10:'maximum effort'};
+  const rpeSlider = document.getElementById('rpe');
+  const rpeLabel  = document.getElementById('rpe-label');
+  rpeSlider.addEventListener('input', () => {
+    rpeLabel.textContent = `${rpeSlider.value} — ${rpeLabels[rpeSlider.value]}`;
+  });
+
+  /* --- Photo preview + AI extract --- */
+  document.getElementById('photos').addEventListener('change', async function() {
+    const files = this.files;
+    if (!files.length) return;
+
+    // preview
+    const preview = document.getElementById('preview');
+    preview.innerHTML = '';
+    [...files].forEach(f => {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(f);
+      img.className = 'w-16 h-16 object-cover rounded-lg border border-border';
+      preview.appendChild(img);
+    });
+    document.getElementById('drop-zone').classList.add('border-teal/50');
+
+    // AI extract
+    document.getElementById('ai-status').classList.remove('hidden');
+    document.getElementById('ai-status-text').textContent = '✦ Analyzing images...';
+
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append('photos', file);
+    }
+
+    try {
+      const response = await fetch('/extract', { method: 'POST', body: formData });
+      const data = await response.json();
+      if (data.distance_km)   document.getElementById('distance_km').value  = data.distance_km;
+      if (data.duration_min)  document.getElementById('duration_min').value  = data.duration_min;
+      if (data.avg_hr)        document.getElementById('avg_hr').value        = data.avg_hr;
+      if (data.max_hr)        document.getElementById('max_hr').value        = data.max_hr;
+      if (data.cadence)       document.getElementById('cadence').value       = data.cadence;
+      if (data.calories)      document.getElementById('calories').value      = data.calories;
+      if (data.zone2_minutes) document.getElementById('zone2_minutes').value = data.zone2_minutes;
+      if (data.vo2max)        document.getElementById('vo2max').value        = data.vo2max;
+
+      document.getElementById('ai-status-text').textContent = '✦ Data extracted successfully';
+    } catch (e) {
+      document.getElementById('ai-status-text').textContent = '✦ Could not extract data — fill in manually';
+    }
+  });
+
+  /* --- Pain buttons --- */
+  const painSelected = new Set();
+  document.querySelectorAll('.pain-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = btn.dataset.value;
+      if (v === '') {
+        painSelected.clear();
+        document.querySelectorAll('.pain-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('pain-intensity-wrap').classList.add('hidden');
+      } else {
+        document.querySelector('.pain-btn[data-value=""]').classList.remove('active');
+        if (painSelected.has(v)) { painSelected.delete(v); btn.classList.remove('active'); }
+        else { painSelected.add(v); btn.classList.add('active'); }
+        document.getElementById('pain-intensity-wrap').classList.toggle('hidden', painSelected.size === 0);
+      }
+      document.getElementById('pain-zones-input').value = [...painSelected].join(',');
+    });
+  });
+
+  /* --- Pain intensity --- */
+  document.querySelectorAll('.pain-int-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.pain-int-btn').forEach(b => b.classList.remove('bg-bad','border-bad','text-white'));
+      btn.classList.add('bg-bad','border-bad','text-white');
+      document.getElementById('pain-intensity-input').value = btn.dataset.int;
+    });
+  });
+
+  /* --- Surface buttons --- */
+  document.querySelectorAll('.surf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.surf-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('surface-input').value = btn.dataset.value;
+    });
+  });
+</script>
+
+<style>
+  .pain-btn {
+    padding: .3rem .75rem;
+    border-radius: 20px;
+    border: 1px solid #30363d;
+    font-size: .8rem;
+    color: #8b949e;
+    cursor: pointer;
+    background: transparent;
+    transition: all .15s;
+  }
+  .pain-btn.active { background: #1c2333; border-color: #2dd4bf; color: #2dd4bf; }
+  .surf-btn {
+    padding: .35rem .9rem;
+    border-radius: 20px;
+    border: 1px solid #30363d;
+    font-size: .85rem;
+    color: #8b949e;
+    cursor: pointer;
+    background: transparent;
+    transition: all .15s;
+  }
+  .surf-btn.active { background: #0d2e2a; border-color: #2dd4bf; color: #2dd4bf; }
+</style>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+{% block title %}Progress · RunLog{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 fade-up">
+  <h1 class="text-xl font-medium">Progress</h1>
+  <p class="text-muted text-sm mt-0.5">Your evolution over time</p>
+</div>
+
+<!-- Period tabs -->
+<div class="flex gap-2 mb-5 fade-up">
+  <a href="/history?period=week"  class="period-tab {% if period == 'week' %}active{% endif %}">Week</a>
+  <a href="/history?period=month" class="period-tab {% if period == 'month' %}active{% endif %}">Month</a>
+  <a href="/history?period=year"  class="period-tab {% if period == 'year' %}active{% endif %}">Year</a>
+</div>
+
+<!-- Avg HR per session (most important chart) -->
+<div class="bg-card border border-border rounded-xl2 p-4 mb-4 fade-up fade-up-1">
+  <div class="flex items-start justify-between mb-1">
+    <p class="text-xs text-muted uppercase tracking-wider">Avg HR per session</p>
+    <span class="text-xs text-teal">the aerobic engine</span>
+  </div>
+  <p class="text-xs text-muted mb-3">HR dropping at the same pace = real improvement</p>
+  <canvas id="chartHR" height="140"></canvas>
+</div>
+
+<!-- Zone 2 -->
+<div class="bg-card border border-border rounded-xl2 p-4 mb-4 fade-up fade-up-2">
+  <p class="text-xs text-muted uppercase tracking-wider mb-3">% Time in Zone 2</p>
+  <canvas id="chartZone2" height="120"></canvas>
+</div>
+
+<!-- Cadence -->
+<div class="bg-card border border-border rounded-xl2 p-4 mb-4 fade-up fade-up-2">
+  <div class="flex items-center justify-between mb-3">
+    <p class="text-xs text-muted uppercase tracking-wider">Cadence (spm)</p>
+    <span class="text-xs text-muted">target: 160-170</span>
+  </div>
+  <canvas id="chartCadence" height="120"></canvas>
+</div>
+
+<!-- Session list -->
+<div class="fade-up fade-up-3">
+  <p class="text-xs text-muted uppercase tracking-wider mb-3">Sessions</p>
+
+  {% if sessions %}
+  <div class="space-y-3">
+    {% for s in sessions %}
+    <div class="bg-card border border-border rounded-xl2 p-4 hover:border-teal/30 transition-colors">
+      <div class="flex items-start justify-between mb-3">
+        <div>
+          <p class="font-medium">{{ s.distance_km }} km</p>
+          <p class="text-xs text-muted">{{ s.session_date }}</p>
+        </div>
+        <div class="flex gap-2 items-center">
+          {% if s.zone2_pct is not none %}
+            {% if s.zone2_pct >= 70 %}
+              <span class="text-xs badge-green px-2 py-0.5 rounded-full">Z2 ✓</span>
+            {% elif s.zone2_pct >= 50 %}
+              <span class="text-xs badge-amber px-2 py-0.5 rounded-full">Z3</span>
+            {% else %}
+              <span class="text-xs badge-red px-2 py-0.5 rounded-full">Z4+</span>
+            {% endif %}
+          {% endif %}
+          {% if s.pain_zones %}
+            <span class="text-xs badge-red px-2 py-0.5 rounded-full">pain</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2 text-center">
+        <div>
+          <p class="text-sm font-medium">{{ s.duration_fmt }}</p>
+          <p class="text-xs text-muted">time</p>
+        </div>
+        <div>
+          <p class="text-sm font-medium">{{ s.avg_hr or '—' }}</p>
+          <p class="text-xs text-muted">avg HR</p>
+        </div>
+        <div>
+          <p class="text-sm font-medium {% if s.cadence and s.cadence >= 160 %}text-ok{% elif s.cadence and s.cadence >= 150 %}text-warn{% elif s.cadence %}text-bad{% endif %}">
+            {{ s.cadence or '—' }}
+          </p>
+          <p class="text-xs text-muted">cadence</p>
+        </div>
+        <div>
+          <p class="text-sm font-medium">{{ s.rpe or '—' }}/10</p>
+          <p class="text-xs text-muted">RPE</p>
+        </div>
+      </div>
+
+      {% if s.ai_feedback %}
+      <div class="border-t border-border mt-3 pt-3">
+        <p class="text-xs text-muted leading-relaxed line-clamp-2">{{ s.ai_feedback }}</p>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="bg-card border border-dashed border-border rounded-xl2 p-8 text-center">
+    <p class="text-2xl mb-2">📊</p>
+    <p class="text-sm text-muted">No sessions yet. <a href="/upload" class="text-teal hover:underline">Upload your first one</a></p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const hrData      = {{ hr_data | tojson }};
+  const zone2Data   = {{ zone2_data | tojson }};
+  const cadenceData = {{ cadence_data | tojson }};
+  const labels      = {{ chart_labels | tojson }};
+
+  const chartDefaults = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#1c2333' }, ticks: { color: '#8b949e', font: { size: 10 } } },
+      y: { grid: { color: '#1c2333' }, ticks: { color: '#8b949e', font: { size: 10 } } }
+    }
+  };
+
+  /* Avg HR */
+  new Chart(document.getElementById('chartHR'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{ data: hrData, borderColor: '#f59e0b', backgroundColor: '#f59e0b22',
+                   borderWidth: 2, pointRadius: 3, fill: true, tension: .3 }]
+    },
+    options: { ...chartDefaults, scales: { ...chartDefaults.scales,
+      y: { ...chartDefaults.scales.y, suggestedMin: 120, suggestedMax: 180 } } }
+  });
+
+  /* Zone 2 */
+  new Chart(document.getElementById('chartZone2'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: zone2Data,
+        backgroundColor: zone2Data.map(v => v >= 70 ? '#22c55e33' : v >= 50 ? '#f59e0b33' : '#ef444433'),
+        borderColor:     zone2Data.map(v => v >= 70 ? '#22c55e' : v >= 50 ? '#f59e0b' : '#ef4444'),
+        borderWidth: 1, borderRadius: 4 }]
+    },
+    options: { ...chartDefaults, scales: { ...chartDefaults.scales,
+      y: { ...chartDefaults.scales.y, max: 100, ticks: { ...chartDefaults.scales.y.ticks,
+        callback: v => v + '%' } } } }
+  });
+
+  /* Cadence */
+  new Chart(document.getElementById('chartCadence'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { data: cadenceData, borderColor: '#2dd4bf', backgroundColor: '#2dd4bf11',
+          borderWidth: 2, pointRadius: 3, fill: true, tension: .3, label: 'cadence' },
+        { data: Array(labels.length).fill(160), borderColor: '#30363d',
+          borderDash: [4,4], borderWidth: 1, pointRadius: 0, label: 'target' }
+      ]
+    },
+    options: { ...chartDefaults,
+      plugins: { legend: { display: true, labels: { color: '#8b949e', font: { size: 11 } } } },
+      scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, suggestedMin: 140, suggestedMax: 185 } } }
+  });
+</script>
+
+<style>
+  .period-tab {
+    padding: .3rem .9rem;
+    border-radius: 20px;
+    border: 1px solid #30363d;
+    font-size: .8rem;
+    color: #8b949e;
+    cursor: pointer;
+    background: transparent;
+    transition: all .15s;
+    text-decoration: none;
+  }
+  .period-tab.active { background: #0d2e2a; border-color: #2dd4bf; color: #2dd4bf; }
+</style>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block title %}Iniciar sesión · RunLog{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex flex-col items-center justify-center -mt-6">
+
+  <!-- Logo  -->
+  <div class="mb-8 text-center fade-up">
+    <p class="font-mono text-3xl font-medium tracking-tight">
+      run<span class="text-teal">log</span>
+    </p>
+    <p class="text-muted text-sm mt-1">your tranning app</p>
+  </div>
+
+  <!-- login card -->
+  <div class="w-full bg-card border border-border rounded-xl3 p-6 fade-up fade-up-1">
+
+    <h1 class="text-base font-medium mb-5">Log in</h1>
+
+    <form action="/login" method="post" class="space-y-4">
+
+      <!-- CSRF protection token -->
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div>
+        <label class="block text-xs text-muted mb-1.5" for="username">User</label>
+        <input
+          id="username" name="username" type="text"
+          autocomplete="username" autocapitalize="none"
+          required
+          class="input-field"
+          placeholder="username"
+        />
+      </div>
+
+      <div>
+        <label class="block text-xs text-muted mb-1.5" for="password">password</label>
+        <input
+          id="password" name="password" type="password"
+          autocomplete="current-password"
+          required
+          class="input-field"
+          placeholder="••••••••"
+        />
+      </div>
+
+      <button type="submit" class="btn-primary w-full mt-2">
+        Log In →
+      </button>
+
+    </form>
+
+  </div>
+
+  <!-- Link to register -->
+  <p class="text-muted text-sm mt-5 fade-up fade-up-2">
+    Don't have an account?
+    <a href="/register" class="text-teal hover:underline">Sign up</a>
+  </p>
+
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block title %}Shoe · RunLog{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 fade-up">
+  <h1 class="text-xl font-medium">{% if current %}Update shoe{% else %}Register shoe{% endif %}</h1>
+  <p class="text-muted text-sm mt-0.5">Track your shoe's mileage to protect your joints</p>
+</div>
+
+{% if current %}
+<div class="bg-card border border-border rounded-xl2 p-4 mb-4 fade-up">
+  <p class="text-xs text-muted uppercase tracking-wider mb-2">Current shoe</p>
+  <div class="flex items-center gap-3">
+    <div class="text-2xl">👟</div>
+    <div>
+      <p class="font-medium text-sm">{{ current.name }}</p>
+      <p class="text-xs text-muted">{{ current.km | round(0) | int }} km accumulated</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<form action="/profile/shoe" method="post">
+  <!-- CSRF protection token -->
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="bg-card border border-border rounded-xl2 p-4 mb-4 fade-up fade-up-1 space-y-4">
+
+    <div>
+      <label class="block text-xs text-muted mb-1.5" for="name">Shoe name / model</label>
+      <input id="name" name="name" type="text" required
+        class="input-field" placeholder="E.g. Nike Pegasus 40"
+        value="{{ current.name if current else '' }}" />
+    </div>
+
+    <div>
+      <label class="block text-xs text-muted mb-1.5" for="km_inicial">Starting km</label>
+      <input id="km_inicial" name="km_inicial" type="number" min="0" step="0.1"
+        class="input-field" placeholder="0"
+        value="{{ current.km if current else '0' }}" />
+      <p class="text-xs text-muted mt-1">If the shoe already had km before registering, enter them here</p>
+    </div>
+
+    <div>
+      <label class="block text-xs text-muted mb-1.5" for="km_limit">Km limit</label>
+      <input id="km_limit" name="km_limit" type="number" min="100" max="1500" step="10"
+        class="input-field" placeholder="650"
+        value="{{ current.km_limit if current else '650' }}" />
+      <p class="text-xs text-muted mt-1">Budget shoes ~400km · mid-range ~650km · premium ~800km</p>
+    </div>
+
+  </div>
+
+  <div class="flex gap-3">
+    <a href="/profile" class="btn-secondary flex-1 text-center">Cancel</a>
+    <button type="submit" class="btn-primary flex-1">
+      {% if current %}Update shoe{% else %}Register shoe{% endif %}
+    </button>
+  </div>
+
+</form>
+
+{% endblock %}
