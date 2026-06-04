@@ -1,9 +1,3 @@
-<img width="1920" height="1080" alt="progress" src="https://github.com/user-attachments/assets/3aa1e329-791c-4d14-95ee-370c749f7a41" />
-<img width="1920" height="1080" alt="profile" src="https://github.com/user-attachments/assets/4c746f2a-422f-4b4a-a431-0927db96637c" />
-<img width="1920" height="1080" alt="upload_ai" src="https://github.com/user-attachments/assets/b4dce26c-8d52-40de-9193-dc61e91e23b6" />
-<img width="1920" height="1080" alt="home" src="https://github.com/user-attachments/assets/ef396ddb-149a-4764-a7df-d1bbf7c94bed" />
-<img width="1920" height="1080" alt="register" src="https://github.com/user-attachments/assets/f8bd33ba-12bc-49ea-9502-d1d451672771" />
-<img width="1920" height="1080" alt="login" src="https://github.com/user-attachments/assets/8a1d4237-da00-4b94-885f-563f066d2b68" />
 # runlog 🏃
 
 > CS50x Final Project — A smart running training log that uses AI to extract workout data from fitness app screenshots and provides personalized aerobic training insights.
@@ -15,22 +9,22 @@
 ## Screenshots
 
 ### Login
-![Login](screenshots/login.png)
+![Login](https://github.com/user-attachments/assets/8a1d4237-da00-4b94-885f-563f066d2b68)
 
 ### Register
-![Register](screenshots/register.png)
+![Register](https://github.com/user-attachments/assets/f8bd33ba-12bc-49ea-9502-d1d451672771)
 
 ### Home — Weather alert + metrics
-![Home](screenshots/home.png)
+![Home](https://github.com/user-attachments/assets/ef396ddb-149a-4764-a7df-d1bbf7c94bed)
 
 ### Upload — AI extracts training data from screenshot
-![Upload AI](screenshots/upload_ai.png)
+![Upload AI](https://github.com/user-attachments/assets/b4dce26c-8d52-40de-9193-dc61e91e23b6)
 
 ### Profile
-![Profile](screenshots/profile.png)
+![Profile](https://github.com/user-attachments/assets/4c746f2a-422f-4b4a-a431-0927db96637c)
 
 ### Progress
-![Progress](screenshots/progress.png)
+![Progress](https://github.com/user-attachments/assets/3aa1e329-791c-4d14-95ee-370c749f7a41)
 
 ---
 
