@@ -1,8 +1,7 @@
--- RunLog schema
--- Correr con: sqlite3 training.db < schema.sql
+-- RunLog schema — PostgreSQL (Neon)
 
 CREATE TABLE IF NOT EXISTS users (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    id          SERIAL PRIMARY KEY,
     username    TEXT    NOT NULL UNIQUE,
     hash        TEXT    NOT NULL,
     age         INTEGER,
@@ -13,11 +12,11 @@ CREATE TABLE IF NOT EXISTS users (
     hr_rest     INTEGER,
     location    TEXT,
     goal_km     INTEGER DEFAULT 21,
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
-    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    id             SERIAL PRIMARY KEY,
     user_id        INTEGER NOT NULL,
     session_date   DATE    NOT NULL,
     distance_km    REAL,
@@ -35,30 +34,29 @@ CREATE TABLE IF NOT EXISTS sessions (
     notes          TEXT,
     ai_feedback    TEXT,
     raw_extraction TEXT,
-    uploaded_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    uploaded_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS uploads (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    id          SERIAL PRIMARY KEY,
     session_id  INTEGER NOT NULL,
     filename    TEXT    NOT NULL,
-    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES sessions(id)
 );
 
 CREATE TABLE IF NOT EXISTS shoes (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    id         SERIAL PRIMARY KEY,
     user_id    INTEGER NOT NULL,
     name       TEXT    NOT NULL,
     km         REAL    DEFAULT 0,
     km_limit   INTEGER DEFAULT 650,
     active     INTEGER DEFAULT 1,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- User stats (one row per user, updated after each upload)
 CREATE TABLE IF NOT EXISTS user_stats (
     user_id          INTEGER PRIMARY KEY,
     km_total         REAL    DEFAULT 0,
@@ -68,9 +66,8 @@ CREATE TABLE IF NOT EXISTS user_stats (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- Achievements (one row per unlocked achievement)
 CREATE TABLE IF NOT EXISTS achievements (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    id          SERIAL PRIMARY KEY,
     user_id     INTEGER NOT NULL,
     type        TEXT    NOT NULL,
     unlocked_at DATE    DEFAULT CURRENT_DATE,

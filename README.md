@@ -1,30 +1,30 @@
 # runlog 🏃
 
 > CS50x Final Project — A smart running training log that uses AI to extract workout data from fitness app screenshots and provides personalized aerobic training insights.
-
-[![Demo Video](https://img.shields.io/badge/▶_Watch_Demo-YouTube-red?style=for-the-badge)](https://youtu.be/yPEzyfoH3KY)
+#### Video Demo: https://youtu.be/EERFbF2Ulrc
+[![Demo Video](https://img.shields.io/badge/▶_Watch_Demo-YouTube-red?style=for-the-badge)](https://youtu.be/EERFbF2Ulrc)
 
 ---
 
 ## Screenshots
 
 ### Login
-![Login](https://github.com/user-attachments/assets/8a1d4237-da00-4b94-885f-563f066d2b68)
+![Login](screenshots/login.png)
 
 ### Register
-![Register](https://github.com/user-attachments/assets/f8bd33ba-12bc-49ea-9502-d1d451672771)
+![Register](screenshots/register.png)
 
 ### Home — Weather alert + metrics
-![Home](https://github.com/user-attachments/assets/ef396ddb-149a-4764-a7df-d1bbf7c94bed)
+![Home](screenshots/home.png)
 
 ### Upload — AI extracts training data from screenshot
-![Upload AI](https://github.com/user-attachments/assets/b4dce26c-8d52-40de-9193-dc61e91e23b6)
+![Upload AI](screenshots/upload_ai.png)
 
 ### Profile
-![Profile](https://github.com/user-attachments/assets/4c746f2a-422f-4b4a-a431-0927db96637c)
+![Profile](screenshots/profile.png)
 
 ### Progress
-![Progress](https://github.com/user-attachments/assets/3aa1e329-791c-4d14-95ee-370c749f7a41)
+![Progress](screenshots/progress.png)
 
 ---
 

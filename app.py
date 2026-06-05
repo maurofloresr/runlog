@@ -104,7 +104,7 @@ def index():
     # LAST 5 SESSIONS BAR CHART
     last5_sessions = fetch_last_sessions(user_id,5)
     # char_labels takes only month and day
-    char_labels = [s["session_date"][5:] for s in last5_sessions]
+    char_labels = [s["session_date"].strftime("%m-%d") for s in last5_sessions]
     char_distances = [s["distance_km"] for s in last5_sessions]
     
     # PROGRESS TO GAOL 
@@ -255,7 +255,7 @@ def history():
             "zone2_pct":    get_zone2_percentage([s]) if s["zone2_minutes"] and s["duration_sec"] else None,
         })
 
-    chart_labels = [s["session_date"][5:] for s in sessions]
+    chart_labels = [s["session_date"].strftime("%m-%d") for s in sessions]
     hr_data      = [s["avg_hr"]    or 0 for s in sessions]
     zone2_data   = [s["zone2_pct"] or 0 for s in sessions]
     cadence_data = [s["cadence"]   or 0 for s in sessions]
@@ -302,7 +302,7 @@ def profile():
                     "zone":       zone,
                     "intensity":  p["pain_intensity"] or 1,
                     "date":       p["session_date"],
-                    "date_short": p["session_date"][5:],
+                    "date_short": p["session_date"].strftime("%m-%d"),
                 })
     pain_alert = check_pain_alerts(pain_history)
 
@@ -324,8 +324,8 @@ def profile():
         {"icon": "🌟", "title": "50km accumulated",      "subtitle": f"{round(max(50-total_km_val,0),1)}km left" if total_km_val < 50 else "You did it!", "unlocked": "total_50km" in unlocked},
     ]
 
-    member_since = user["created_at"][:7] if user.get("created_at") else "—"
-
+    member_since = user["created_at"].strftime("%Y-%m") if user.get("created_at") else "—"
+    
     return render_template("profile.html",
         user           = user,
         zone2_ceiling  = zone2_ceiling,
@@ -386,14 +386,14 @@ def register():
             flash("Passwords do not match", "error")
             return render_template("register.html")
                 
-        # not essential information:
-        age = request.form.get("age")
-        weight = request.form.get("weight_kg")
-        height = request.form.get("height_cm")
-        sex = request.form.get("sex")
-        hr_max = request.form.get("hr_max")
-        hr_rest = request.form.get("hr_rest")
-        location = request.form.get("location")
+        # not essential information — convert to correct types for PostgreSQL
+        age      = int(request.form.get("age"))         if request.form.get("age")       else None
+        weight   = float(request.form.get("weight_kg")) if request.form.get("weight_kg") else None
+        height   = float(request.form.get("height_cm")) if request.form.get("height_cm") else None
+        sex      = request.form.get("sex")              or None
+        hr_max   = int(request.form.get("hr_max"))      if request.form.get("hr_max")     else None
+        hr_rest  = int(request.form.get("hr_rest"))     if request.form.get("hr_rest")    else None
+        location = request.form.get("location", "").strip() or None
         
         create_user(username, password, age, weight, height, sex, hr_max, hr_rest, location)
         session["user_id"] = get_user_by_username(username)["id"]
