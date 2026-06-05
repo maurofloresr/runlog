@@ -9,22 +9,22 @@
 ## Screenshots
 
 ### Login
-![Login](screenshots/login.png)
+<img width="1920" height="1080" alt="login" src="https://github.com/user-attachments/assets/4eb8fc50-8a01-4bc1-869b-980e8272612c" />
 
 ### Register
-![Register](screenshots/register.png)
+<img width="1920" height="1080" alt="register" src="https://github.com/user-attachments/assets/a54578f3-fc71-49b2-8d8b-71f05e56c3fe" />
 
 ### Home — Weather alert + metrics
-![Home](screenshots/home.png)
+<img width="1920" height="1080" alt="home" src="https://github.com/user-attachments/assets/53b5236c-772b-4385-b48c-863c7c6fb19f" />
 
 ### Upload — AI extracts training data from screenshot
-![Upload AI](screenshots/upload_ai.png)
+<img width="1920" height="1080" alt="upload_ai" src="https://github.com/user-attachments/assets/70222b97-a70b-47f7-ad3b-2210a2d67ce4" />
 
 ### Profile
-![Profile](screenshots/profile.png)
+<img width="1920" height="1080" alt="profile" src="https://github.com/user-attachments/assets/effb4d89-d93e-4b8f-8564-c944162a986b" />
 
 ### Progress
-![Progress](screenshots/progress.png)
+<img width="1920" height="1080" alt="progress" src="https://github.com/user-attachments/assets/676f0f79-832c-4d71-9a0d-08753014f4e4" />
 
 ---
 
