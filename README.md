@@ -1,8 +1,8 @@
 # runlog 🏃
 
 > CS50x Final Project — A smart running training log that uses AI to extract workout data from fitness app screenshots and provides personalized aerobic training insights.
-
-[![Demo Video](https://img.shields.io/badge/▶_Watch_Demo-YouTube-red?style=for-the-badge)](https://youtu.be/yPEzyfoH3KY)
+#### Video Demo: https://youtu.be/EERFbF2Ulrc
+[![Demo Video](https://img.shields.io/badge/▶_Watch_Demo-YouTube-red?style=for-the-badge)](https://youtu.be/EERFbF2Ulrc)
 
 ---
 
